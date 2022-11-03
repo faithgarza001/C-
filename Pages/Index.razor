@@ -1,0 +1,98 @@
+﻿@page "/"
+<style>
+    .container {
+        width: 400px;
+    }
+
+    button {
+        width: 100px;
+        height: 100px;
+        font-size: 50px;
+    }
+</style>
+<div class="container">
+    <div class="row">
+        @for (var animalNumber = 0; animalNumber < shuffledAnimals.Count; animalNumber++)
+        {
+            var animal = shuffledAnimals[animalNumber];
+            var uniqueDescription = $"Button #{animalNumber}";
+            <div class="col-3">
+                <button @onclick="@(() => ButtonClick(animal, uniqueDescription))" type="button" class="btn btn-outline-dark">
+                    @animal
+            </button>
+        </div>
+    }
+    </div>
+</div>
+
+@code{
+    //create list of emoji's
+    List<string> animalEmoji = new List<string>()
+    {
+        "🐊","🐊",
+        "🐇","🐇",
+        "🦁","🦁",
+        "🐒","🐒",
+        "🐝","🐝",
+        "🐣","🐣",
+        "🐲","🐲",
+        "🐾","🐾",
+    };
+
+    //creating the second list to store pair of shuffled emojis (bucket)
+    List<string> shuffledAnimals = new List<string>();
+
+
+    //Set up the game every time the page is reloaded
+    protected override void OnInitialized()
+    {
+        //The end of a method that sets up the game
+        SetUpGame();
+    }
+
+    //The beginning of a method that sets up the game
+    private void SetUpGame()
+    {
+        //Create a new random number generator
+        Random random = new Random();
+        // Create copies of the animal emoji, shuffle them,
+        //and store them in the shuffledAnimals list
+        shuffledAnimals = animalEmoji.OrderBy(item => random.Next()).ToList();
+    }
+
+    string lastAnimalFound = string.Empty;
+    string lastDescription = string.Empty;
+
+    private void ButtonClick(string animal, string animalDescription)
+    {
+        //check to see if this is the first button clicked
+
+        if(lastAnimalFound == string.Empty)
+        {//if true set value and 
+         //First selection of the pair. Remember it.
+            lastAnimalFound = animal;
+            lastDescription = animalDescription;
+
+
+        } else if ((lastAnimalFound == animal) && (animalDescription != lastDescription))
+        {
+
+            //Match found! Reset for the next pair.
+            lastAnimalFound = string.Empty;
+
+            //Replace found animals with empty string to hide them.
+            shuffledAnimals = shuffledAnimals
+                .Select(a => a.Replace(animal, string.Empty))
+                .ToList();
+
+        }
+        else
+        {
+            //User selected a pair that doesn't match
+            //Reset selection;
+            lastAnimalFound = string.Empty;
+
+        }
+    }
+
+}
