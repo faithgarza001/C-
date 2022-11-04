@@ -1,4 +1,6 @@
 ﻿@page "/"
+@using System.Timers
+
 <style>
     .container {
         width: 400px;
@@ -34,7 +36,7 @@
 @code{
     //create list of emoji's
     List<string> animalEmoji = new List<string>()
-    {
+{
         "🐊","🐊",
         "🐇","🐇",
         "🦁","🦁",
@@ -56,7 +58,7 @@
     //Set up the game every time the page is reloaded
     protected override void OnInitialized()
     {
-        timer = new Timer();
+        timer = new Timer(100);
         timer.Elapsed += Timer_Tick;
         //The end of a method that sets up the game
         SetUpGame();
@@ -70,6 +72,7 @@
         // Create copies of the animal emoji, shuffle them,
         //and store them in the shuffledAnimals list
         shuffledAnimals = animalEmoji.OrderBy(item => random.Next()).ToList();
+        matchesFound = 0;
         tenthsOfSecondsElapsed = 0;
     }
 
@@ -81,13 +84,15 @@
         //check to see if this is the first button clicked
 
         if (lastAnimalFound == string.Empty)
-        {//if true set value and 
+        {//if true set value and
          //First selection of the pair. Remember it.
             lastAnimalFound = animal;
             lastDescription = animalDescription;
             timer.Start();
 
-        } else if ((lastAnimalFound == animal) && (animalDescription != lastDescription))
+
+        }
+        else if ((lastAnimalFound == animal) && (animalDescription != lastDescription))
         {
 
             //Match found! Reset for the next pair.
@@ -100,8 +105,9 @@
             matchesFound++;
             if (matchesFound == 8)
             {
+
                 timer.Stop();
-                timeDisplay += " - Play Again ?"
+                timeDisplay += " - Play Again?";
                 SetUpGame();
             }
 
@@ -115,4 +121,15 @@
         }
     }
 
+    private void Timer_Tick(Object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() =>
+        {
+            tenthsOfSecondsElapsed++;
+            timeDisplay = (tenthsOfSecondsElapsed / 10F)
+.ToString("0.0s");
+            StateHasChanged();
+        });
     }
+
+}
