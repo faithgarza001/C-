@@ -13,24 +13,27 @@
 <div class="container">
     <div class="row">
         @for (var animalNumber = 0; animalNumber < shuffledAnimals.Count; animalNumber++)
-            {
-                var animal = shuffledAnimals[animalNumber];
-                var uniqueDescription = $"Button #{animalNumber}";
+        {
+            var animal = shuffledAnimals[animalNumber];
+            var uniqueDescription = $"Button #{animalNumber}";
             <div class="col-3">
                 <button @onclick="@(() => ButtonClick(animal, uniqueDescription))" type="button" class="btn btn-outline-dark">
                     @animal
                 </button>
             </div>
-            }
+        }
     </div>
     <div class="row">
         <h2>Matches found: @matchesFound</h2>
     </div>
+    <div class="row">
+        <h2>Time: @timeDisplay</h2>
+    </div>
 </div>
 
 @code{
-            //create list of emoji's
-            List<string> animalEmoji = new List<string>()
+    //create list of emoji's
+    List<string> animalEmoji = new List<string>()
     {
         "🐊","🐊",
         "🐇","🐇",
@@ -42,66 +45,74 @@
         "🐾","🐾",
     };
 
-            //creating the second list to store pair of shuffled emojis (bucket)
-            List<string> shuffledAnimals = new List<string>();
-            int matchesFound = 0;
+    //creating the second list to store pair of shuffled emojis (bucket)
+    List<string> shuffledAnimals = new List<string>();
+    int matchesFound = 0;
+    Timer timer;
+    int tenthsOfSecondsElapsed = 0;
+    string timeDisplay;
 
 
     //Set up the game every time the page is reloaded
     protected override void OnInitialized()
+    {
+        timer = new Timer();
+        timer.Elapsed += Timer_Tick;
+        //The end of a method that sets up the game
+        SetUpGame();
+    }
+
+    //The beginning of a method that sets up the game
+    private void SetUpGame()
+    {
+        //Create a new random number generator
+        Random random = new Random();
+        // Create copies of the animal emoji, shuffle them,
+        //and store them in the shuffledAnimals list
+        shuffledAnimals = animalEmoji.OrderBy(item => random.Next()).ToList();
+        tenthsOfSecondsElapsed = 0;
+    }
+
+    string lastAnimalFound = string.Empty;
+    string lastDescription = string.Empty;
+
+    private void ButtonClick(string animal, string animalDescription)
+    {
+        //check to see if this is the first button clicked
+
+        if (lastAnimalFound == string.Empty)
+        {//if true set value and 
+         //First selection of the pair. Remember it.
+            lastAnimalFound = animal;
+            lastDescription = animalDescription;
+            timer.Start();
+
+        } else if ((lastAnimalFound == animal) && (animalDescription != lastDescription))
         {
-            //The end of a method that sets up the game
-            SetUpGame();
-        }
 
-        //The beginning of a method that sets up the game
-        private void SetUpGame()
-        {
-            //Create a new random number generator
-            Random random = new Random();
-            // Create copies of the animal emoji, shuffle them,
-            //and store them in the shuffledAnimals list
-            shuffledAnimals = animalEmoji.OrderBy(item => random.Next()).ToList();
-        }
+            //Match found! Reset for the next pair.
+            lastAnimalFound = string.Empty;
 
-        string lastAnimalFound = string.Empty;
-        string lastDescription = string.Empty;
-
-        private void ButtonClick(string animal, string animalDescription)
-        {
-            //check to see if this is the first button clicked
-
-            if (lastAnimalFound == string.Empty)
-            {//if true set value and 
-             //First selection of the pair. Remember it.
-                lastAnimalFound = animal;
-                lastDescription = animalDescription;
-
-
-            } else if ((lastAnimalFound == animal) && (animalDescription != lastDescription))
+            //Replace found animals with empty string to hide them.
+            shuffledAnimals = shuffledAnimals
+                .Select(a => a.Replace(animal, string.Empty))
+                .ToList();
+            matchesFound++;
+            if (matchesFound == 8)
             {
-
-                //Match found! Reset for the next pair.
-                lastAnimalFound = string.Empty;
-
-                //Replace found animals with empty string to hide them.
-                shuffledAnimals = shuffledAnimals
-                    .Select(a => a.Replace(animal, string.Empty))
-                    .ToList();
-                matchesFound++;
-                if (matchesFound == 8)
-                {
-                    SetUpGame();
-                }
-
+                timer.Stop();
+                timeDisplay += " - Play Again ?"
+                SetUpGame();
             }
-            else
-            {
-                //User selected a pair that doesn't match
-                //Reset selection;
-                lastAnimalFound = string.Empty;
 
-            }
         }
+        else
+        {
+            //User selected a pair that doesn't match
+            //Reset selection;
+            lastAnimalFound = string.Empty;
+
+        }
+    }
 
     }
